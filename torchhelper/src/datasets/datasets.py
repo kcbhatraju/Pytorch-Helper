@@ -20,13 +20,16 @@ class Supervised(Dataset):
         self.main = []
         self.imgs = []
         self.paths = []
-        self.dirs = glob.glob(f"{root}/*/)")
+        self.dirs = glob.glob(f"{root}/*/")
         self.labels_map = {}
         for key, dir in enumerate(self.dirs):
             self.labels_map[key] = os.path.basename(dir[:-1])
-            dirpaths = [glob.glob(f"{dir}/*.{e}" for e in ex)]
+            dirpaths = []
+            for e in ex:
+                dirpaths.extend(glob.glob(f"{dir}/*.{e}"))
             self.paths += dirpaths
-            self.imgs.append(self.transform(Image.open(path) for path in dirpaths))
+            for path in dirpaths:
+                self.imgs.append(self.transform(Image.open(path)))
             self.main.append((self.imgs[-1], key))
         if shuffle: self.shuffle()
     
@@ -53,8 +56,10 @@ class Unsupervised(Dataset):
     def __init__(self, root, transform=transforms.ToTensor(), ex=["png","jpg","jpeg"], shuffle=True):
         self.transform = transform
         self.paths = []
-        self.paths += (glob.glob(f"{root}/*.{e}" for e in ex))
-        self.imgs = [self.transform(Image.open(path)) for path in self.paths]
+        for e in ex:
+            self.paths.extend(glob.glob(f"{root}/*.{e}"))
+        for path in self.paths:
+            self.imgs.append(self.transform(Image.open(path)))
         if shuffle: self.shuffle()
         
     def __len__(self):
